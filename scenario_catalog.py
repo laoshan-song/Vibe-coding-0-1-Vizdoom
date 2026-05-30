@@ -2,6 +2,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+
 @dataclass(frozen=True)
 class ScenarioSpec:
     name: str
@@ -102,7 +105,7 @@ def list_scenarios() -> list[str]:
 
 
 def scenario_artifact_dir(name: str) -> Path:
-    return Path('artifacts') / 'scenarios' / name
+    return PROJECT_ROOT / 'artifacts' / 'scenarios' / name
 
 
 def default_demo_path(name: str) -> Path:

@@ -1,13 +1,26 @@
 import argparse
 import subprocess
 import sys
+from pathlib import Path
 
 from scenario_catalog import get_scenario_spec, list_scenarios
 
 
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+
+def resolve_user_path(value):
+    if value is None:
+        return None
+    path = Path(value)
+    if path.is_absolute():
+        return str(path)
+    return str((Path.cwd() / path).resolve())
+
+
 def run_command(command):
     print('running:', ' '.join(command))
-    subprocess.run(command, check=True)
+    subprocess.run(command, check=True, cwd=PROJECT_ROOT)
 
 
 def parse_args():
@@ -19,6 +32,7 @@ def parse_args():
     parser.add_argument('--timesteps', type=int, default=None)
     parser.add_argument('--agent', choices=['teacher', 'bc', 'ppo'], default='ppo')
     parser.add_argument('--visible', action='store_true')
+    parser.add_argument('--headless', action='store_true')
     parser.add_argument('--cpu', action='store_true')
     parser.add_argument('--val-split', type=float, default=None)
     parser.add_argument('--patience', type=int, default=None)
@@ -32,11 +46,11 @@ def main():
     python = sys.executable
 
     if args.stage == 'teacher':
-        run_command([python, 'scenario_teacher.py', '--scenario', args.scenario, '--episodes', str(args.episodes or 5)] + (['--visible'] if args.visible else []))
+        run_command([python, str(PROJECT_ROOT / 'scenario_teacher.py'), '--scenario', args.scenario, '--episodes', str(args.episodes or 5)] + (['--visible'] if args.visible else []))
         return
 
     if args.stage in {'collect', 'all'} and spec.pipeline == 'teacher_bc_ppo':
-        command = [python, 'scenario_collect.py', '--scenario', args.scenario]
+        command = [python, str(PROJECT_ROOT / 'scenario_collect.py'), '--scenario', args.scenario]
         if args.episodes is not None:
             command.extend(['--episodes', str(args.episodes)])
         if args.visible:
@@ -44,7 +58,7 @@ def main():
         run_command(command)
 
     if args.stage in {'bc', 'all'} and spec.pipeline == 'teacher_bc_ppo':
-        command = [python, 'scenario_bc.py', '--scenario', args.scenario]
+        command = [python, str(PROJECT_ROOT / 'scenario_bc.py'), '--scenario', args.scenario]
         if args.epochs is not None:
             command.extend(['--epochs', str(args.epochs)])
         if args.val_split is not None:
@@ -56,13 +70,13 @@ def main():
         run_command(command)
 
     if args.stage in {'train', 'all'}:
-        command = [python, 'scenario_train.py', '--scenario', args.scenario]
+        command = [python, str(PROJECT_ROOT / 'scenario_train.py'), '--scenario', args.scenario]
         if spec.pipeline == 'teacher_bc_ppo':
             command.extend(['--bc-init', 'auto'])
         if args.timesteps is not None:
             command.extend(['--timesteps', str(args.timesteps)])
         if args.resume is not None:
-            command.extend(['--resume', str(args.resume)])
+            command.extend(['--resume', resolve_user_path(args.resume)])
         if args.cpu:
             command.append('--cpu')
         if args.visible:
@@ -71,7 +85,14 @@ def main():
         run_command(command)
 
     if args.stage == 'play':
-        run_command([python, 'scenario_play.py', '--scenario', args.scenario, '--agent', args.agent])
+        command = [python, str(PROJECT_ROOT / 'scenario_play.py'), '--scenario', args.scenario, '--agent', args.agent]
+        if args.episodes is not None:
+            command.extend(['--episodes', str(args.episodes)])
+        if args.headless:
+            command.append('--headless')
+        if args.cpu:
+            command.append('--cpu')
+        run_command(command)
 
 
 if __name__ == '__main__':

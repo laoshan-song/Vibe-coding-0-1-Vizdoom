@@ -103,6 +103,9 @@ def main():
         bc_init_path = str(default_bc_path(args.scenario))
     if spec.pipeline != 'teacher_bc_ppo':
         bc_init_path = None
+    if bc_init_path is not None and not Path(bc_init_path).exists():
+        print(f'BC init model not found, starting PPO from scratch: {bc_init_path}')
+        bc_init_path = None
 
     bc_payload = load_bc_payload(bc_init_path, torch.device('cpu')) if bc_init_path else None
     policy_name = 'MlpPolicy' if spec.observation_mode == 'structured' else 'CnnPolicy'
