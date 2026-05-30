@@ -77,10 +77,42 @@ python play.py --agent ppo
 python ../../scenario_pipeline.py --scenario basic --stage play --headless --episodes 10
 ```
 
+## 训练总览
+
+```mermaid
+flowchart LR
+    A[进入场景目录] --> B{场景类型}
+    B -->|结构化场景| C[Teacher 规则策略]
+    C --> D[采集演示数据]
+    D --> E[BC 行为克隆]
+    E --> F[PPO 热启动微调]
+    B -->|视觉场景| G[CNN Policy]
+    G --> H[PPO 直接训练]
+    F --> I[保存模型]
+    H --> I
+    I --> J[play.py 回放]
+    J --> K[观察行为并调参]
+```
+
+## 命令速查
+
+| 目标 | 命令 |
+| --- | --- |
+| 训练当前场景 | `python train.py` |
+| 回放 PPO | `python play.py --agent ppo` |
+| 回放 Teacher | `python play.py --agent teacher` |
+| 回放 BC | `python play.py --agent bc` |
+| 增加训练步数 | `python train.py --timesteps 500000` |
+| 无窗口回放 | `python ../../scenario_pipeline.py --scenario basic --stage play --headless --episodes 10` |
+| 从 checkpoint 继续 | `python ../../scenario_pipeline.py --scenario basic --stage train --resume <checkpoint.zip>` |
+| 调整 BC 早停 | `python ../../scenario_pipeline.py --scenario basic --val-split 0.1 --patience 3` |
+
 ## 目录导航
 
 - [项目结构](#项目结构)
 - [视觉预览](#视觉预览)
+- [训练总览](#训练总览)
+- [命令速查](#命令速查)
 - [推荐学习路线](#推荐学习路线)
 - [两条训练路线](#两条训练路线)
 - [常用命令](#常用命令)
@@ -128,6 +160,30 @@ python ../../scenario_pipeline.py --scenario basic --stage play --headless --epi
 | 8 | `deathmatch` | 尝试复杂战斗 baseline |
 
 一句话：先学瞄准和开火，再学搜索和防守，再学生存和找路，最后再碰复杂战斗。
+
+```mermaid
+flowchart LR
+    S1[simpler_basic] --> S2[basic]
+    S2 --> S3[defend_the_center]
+    S3 --> S4[defend_the_line]
+    S4 --> S5[health_gathering]
+    S5 --> S6[my_way_home]
+    S6 --> S7[deadly_corridor]
+    S7 --> S8[deathmatch]
+```
+
+### 场景矩阵
+
+| 场景 | 难度 | 输入 | 主路线 | 适合练习 |
+| --- | --- | --- | --- | --- |
+| `simpler_basic` | 入门 | 结构化状态 | Teacher -> BC -> PPO | 最小射击闭环 |
+| `basic` | 入门 | 结构化状态 | Teacher -> BC -> PPO | 对准、左右修正、开火 |
+| `defend_the_center` | 入门 | 结构化状态 | Teacher -> BC -> PPO | 搜索、转向、防守 |
+| `defend_the_line` | 中级 | 结构化状态 | Teacher -> BC -> PPO | 稳定正面防守 |
+| `health_gathering` | 中级 | 结构化状态 | Teacher -> BC -> PPO | 找资源、生存 |
+| `my_way_home` | 中级 | 视觉帧 | PPO | 探索和导航 |
+| `deadly_corridor` | 高级 | 视觉帧 | PPO | 移动、战斗、生存 |
+| `deathmatch` | 专家 | 视觉帧 | PPO | 复杂战斗 baseline |
 
 ### 通关观察标准
 
