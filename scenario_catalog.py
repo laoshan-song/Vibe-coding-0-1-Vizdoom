@@ -18,6 +18,33 @@ class ScenarioSpec:
     health_var: str | None = 'HEALTH'
 
 
+DEFAULT_TIMESTEPS = {
+    'simpler_basic': 200000,
+    'basic': 300000,
+    'basic_audio': 300000,
+    'basic_notifications': 300000,
+    'rocket_basic': 300000,
+    'learning': 300000,
+    'defend_the_center': 300000,
+    'defend_the_line': 300000,
+    'predict_position': 300000,
+    'take_cover': 200000,
+    'health_gathering': 300000,
+    'health_gathering_supreme': 500000,
+    'my_way_home': 500000,
+    'deadly_corridor': 500000,
+    'cig': 1000000,
+    'deathmatch': 1000000,
+    'multi': 1000000,
+    'multi_duel': 300000,
+    'doom': 1000000,
+    'doom2': 1000000,
+    'freedoom1': 1000000,
+    'freedoom2': 1000000,
+    'oblige': 1000000,
+}
+
+
 SCENARIOS = {
     'basic': ScenarioSpec('basic', '基础左右移动射击', 'combat', 'starter', 'structured', 'teacher_bc_ppo', 'strafe_attack_3', '最经典入门场景，左右移动并开火。', '先学左右对齐和开火，再用 PPO 微调。', ('Cacodemon', 'DoomPlayer'), 'AMMO2', None),
     'basic_audio': ScenarioSpec('basic_audio', '带音频提示的基础射击', 'combat', 'starter', 'structured', 'teacher_bc_ppo', 'strafe_attack_3', '基础射击的音频版本。', '沿用 basic 的左右移动射击路线。', ('Cacodemon', 'DoomPlayer'), 'AMMO2', None),
@@ -27,7 +54,7 @@ SCENARIOS = {
     'learning': ScenarioSpec('learning', '学习版基础射击', 'combat', 'starter', 'structured', 'teacher_bc_ppo', 'strafe_attack_3', '与 basic 同类的学习场景。', '和 basic 共用入门射击策略。', ('Cacodemon', 'DoomPlayer'), 'AMMO2', None),
     'defend_the_center': ScenarioSpec('defend_the_center', '中心防守', 'combat', 'starter', 'structured', 'teacher_bc_ppo', 'turn_attack_3', '站桩防守，转向并开火。', '当前主线场景，先 BC 再 PPO。', ('DoomPlayer',), 'AMMO2', 'HEALTH'),
     'defend_the_line': ScenarioSpec('defend_the_line', '防守一条线', 'combat', 'intermediate', 'structured', 'teacher_bc_ppo', 'turn_attack_3', '比 defend_the_center 更强调正面持续防守。', '复用中心防守打法，但需要更稳。', ('DoomPlayer',), 'AMMO2', 'HEALTH'),
-    'predict_position': ScenarioSpec('predict_position', '位置预测射击', 'combat', 'intermediate', 'structured', 'teacher_bc_ppo', 'turn_attack_3', '转向并预判目标位置。', '用结构化瞄准特征先学稳定开火。', (), None, None),
+    'predict_position': ScenarioSpec('predict_position', '位置预测射击', 'combat', 'intermediate', 'structured', 'teacher_bc_ppo', 'turn_attack_3', '转向并预判目标位置。', '用结构化瞄准特征先学稳定开火。', ('DoomPlayer',), 'AMMO2', 'HEALTH'),
     'take_cover': ScenarioSpec('take_cover', '左右躲避', 'dodge', 'starter', 'structured', 'teacher_bc_ppo', 'dodge_2', '只有左右移动，目标是躲避攻击。', '先学看到敌人后反向躲避。', ('DoomImp',), None, 'HEALTH'),
     'health_gathering': ScenarioSpec('health_gathering', '捡血包生存', 'collect', 'intermediate', 'structured', 'teacher_bc_ppo', 'turn_move_3', '转向并向血包移动维持生命。', '把 Medikit 当作目标，先找再冲过去。', ('Medikit',), None, 'HEALTH'),
     'health_gathering_supreme': ScenarioSpec('health_gathering_supreme', '高强度捡血包生存', 'collect', 'advanced', 'structured', 'teacher_bc_ppo', 'turn_move_3', '更难的捡血包生存环境。', '在 health_gathering 基础上拉长训练。', ('Medikit',), None, 'HEALTH'),
@@ -57,6 +84,10 @@ LEARNING_PATH = [
     'cig',
     'deathmatch',
 ]
+
+
+def get_default_timesteps(name: str) -> int:
+    return DEFAULT_TIMESTEPS.get(name, 300000)
 
 
 def get_scenario_spec(name: str) -> ScenarioSpec:

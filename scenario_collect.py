@@ -7,6 +7,11 @@ from scenario_catalog import default_demo_path, get_scenario_spec, list_scenario
 from scenario_env import make_env
 from scenario_teacher import ScenarioTeacherPolicy
 
+try:
+    from tqdm import tqdm
+except ImportError:
+    tqdm = None
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Collect teacher demonstrations for a built-in scenario.')
@@ -31,8 +36,11 @@ def main():
     observations = []
     actions = []
     episode_rewards = []
+    episode_iter = range(1, args.episodes + 1)
+    if tqdm is not None:
+        episode_iter = tqdm(episode_iter, desc=f'Collecting {args.scenario}', unit='ep')
     try:
-        for episode in range(1, args.episodes + 1):
+        for episode in episode_iter:
             teacher.reset()
             obs, _ = env.reset()
             done = False

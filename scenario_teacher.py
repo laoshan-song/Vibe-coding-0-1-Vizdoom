@@ -40,6 +40,7 @@ class ScenarioTeacherPolicy:
         visible = obs[-6]
         x_offset = obs[-5]
         centered = obs[-1]
+        health = obs[-3]
 
         if self.spec.family == 'dodge':
             if visible < 0.5:
@@ -52,15 +53,19 @@ class ScenarioTeacherPolicy:
         self.missing_steps = 0
         self.search_direction = -1 if x_offset < 0 else 1
 
+        threshold = self.center_threshold
+        if self.spec.family == 'collect' and health < 0.3:
+            threshold = self.center_threshold * 3.0
+
         if 'ATTACK' in ' '.join(self.action_names):
-            if centered > 0.5 or abs(x_offset) < self.center_threshold:
+            if centered > 0.5 or abs(x_offset) < threshold:
                 return self._action_index('ATTACK', 0)
             if 'TURN_LEFT' in ' '.join(self.action_names) or 'TURN_RIGHT' in ' '.join(self.action_names):
                 return self._action_index('TURN_LEFT', 0) if x_offset < 0 else self._action_index('TURN_RIGHT', 1)
             return self._action_index('MOVE_LEFT', 0) if x_offset < 0 else self._action_index('MOVE_RIGHT', 1)
 
         if 'MOVE_FORWARD' in ' '.join(self.action_names):
-            if centered > 0.5 or abs(x_offset) < self.center_threshold:
+            if centered > 0.5 or abs(x_offset) < threshold:
                 return self._action_index('MOVE_FORWARD', 0)
             return self._action_index('TURN_LEFT', 0) if x_offset < 0 else self._action_index('TURN_RIGHT', 1)
 

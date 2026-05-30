@@ -20,6 +20,9 @@ def parse_args():
     parser.add_argument('--agent', choices=['teacher', 'bc', 'ppo'], default='ppo')
     parser.add_argument('--visible', action='store_true')
     parser.add_argument('--cpu', action='store_true')
+    parser.add_argument('--val-split', type=float, default=None)
+    parser.add_argument('--patience', type=int, default=None)
+    parser.add_argument('--resume', default=None)
     return parser.parse_args()
 
 
@@ -44,6 +47,10 @@ def main():
         command = [python, 'scenario_bc.py', '--scenario', args.scenario]
         if args.epochs is not None:
             command.extend(['--epochs', str(args.epochs)])
+        if args.val_split is not None:
+            command.extend(['--val-split', str(args.val_split)])
+        if args.patience is not None:
+            command.extend(['--patience', str(args.patience)])
         if args.cpu:
             command.append('--cpu')
         run_command(command)
@@ -54,6 +61,8 @@ def main():
             command.extend(['--bc-init', 'auto'])
         if args.timesteps is not None:
             command.extend(['--timesteps', str(args.timesteps)])
+        if args.resume is not None:
+            command.extend(['--resume', str(args.resume)])
         if args.cpu:
             command.append('--cpu')
         if args.visible:

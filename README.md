@@ -308,8 +308,12 @@ ppo     = 继续自己练过的学生
 
 ```bash
 python train.py --timesteps 500000
+python ../../scenario_pipeline.py --scenario basic --val-split 0.1 --patience 3
+python ../../scenario_pipeline.py --scenario basic --stage train --resume ../../artifacts/scenarios/basic/checkpoints/basic_ppo_50000_steps.zip
 python play.py --agent ppo
 ```
+
+根目录的 `scenario_pipeline.py` 支持完整流程参数透传：`--val-split` 和 `--patience` 会传给 BC 训练，`--resume` 会传给 PPO 继续训练。未显式设置 `--timesteps` 时，项目会按场景难度使用默认训练步数。
 
 ## Vibe Coding：怎么让 AI 帮你写 RL 代码
 
