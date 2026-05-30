@@ -1,8 +1,45 @@
-# ViZDoom Scenarios Project
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Farama-Foundation/ViZDoom/master/docs/_static/img/vizdoom-demo.gif" alt="ViZDoom gameplay demo" width="820">
+</p>
+
+<h1 align="center">ViZDoom Scenarios Project</h1>
+
+<p align="center">
+  <strong>从一个场景开始，训练、回放、观察，再一步步做出自己的 Doom AI。</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Farama-Foundation/ViZDoom"><img alt="ViZDoom" src="https://img.shields.io/badge/ViZDoom-Farama-5B1E1E"></a>
+  <a href="https://vizdoom.farama.org/"><img alt="Docs" src="https://img.shields.io/badge/Docs-vizdoom.farama.org-111827"></a>
+  <img alt="Python" src="https://img.shields.io/badge/Python-3.10%2B-3776AB">
+  <img alt="RL" src="https://img.shields.io/badge/RL-PPO%20%2B%20BC-0F766E">
+  <img alt="Beginner Friendly" src="https://img.shields.io/badge/Beginner-Friendly-2563EB">
+</p>
 
 一个面向初学者的 ViZDoom 教学项目。项目把 ViZDoom 自带场景拆成独立目录，让你可以先进入某个场景，直接训练、回放、观察行为，再逐步理解背后的强化学习和模仿学习代码。
 
 核心入口是 `scenarios/`。日常使用时，你通常只需要进入某个场景目录，运行 `train.py` 和 `play.py`。
+
+| 你能做什么 | 对应入口 |
+| --- | --- |
+| 快速跑通一个 Doom AI baseline | `scenarios/basic/train.py` |
+| 回放 PPO、BC、Teacher 行为 | `scenarios/<scene>/play.py` |
+| 采集教师演示并做行为克隆 | `scenario_collect.py` + `scenario_bc.py` |
+| 从 BC 热启动 PPO 训练 | `scenario_pipeline.py` |
+| 在远程环境无窗口评估 | `--headless --episodes <N>` |
+
+> 顶部动图来自 Farama Foundation 的 ViZDoom 官方仓库，用于展示 ViZDoom gameplay 效果。
+
+## 项目亮点
+
+| 亮点 | 说明 |
+| --- | --- |
+| 场景拆分 | 每个 ViZDoom 场景都有独立目录，入口清楚，不需要先读完整框架 |
+| 教学路线 | 从 `simpler_basic` 到 `deathmatch`，按难度逐步推进 |
+| 两段式训练 | 简单场景先用 Teacher + BC 热启动，再交给 PPO 微调 |
+| 视觉任务 | 复杂场景直接使用视觉 PPO，保留 Doom 原始画面的学习挑战 |
+| 远程友好 | 支持 `--headless`，可以在服务器上只看回放分数和动作日志 |
+| 可调试 | 奖励、教师策略、训练入口都拆开，方便逐段修改 |
 
 ## 快速开始
 
@@ -25,9 +62,25 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## 视觉预览
+
+| 内容 | 说明 |
+| --- | --- |
+| 官方 gameplay 动图 | 顶部展示的是 ViZDoom 官方 demo GIF，适合快速理解“从画面输入到动作输出”的体验 |
+| 官方资源 | [ViZDoom GitHub](https://github.com/Farama-Foundation/ViZDoom) 和 [ViZDoom Docs](https://vizdoom.farama.org/) 提供更多截图、文档和示例 |
+| 本项目回放 | 训练后执行 `python play.py --agent ppo`，可以直接看到你的模型行为 |
+| 无窗口评估 | 执行 `--headless --episodes 10`，适合远程机器只看分数和动作日志 |
+
+```bash
+cd /home/laoshansong/vizdoom_project/scenarios/basic
+python play.py --agent ppo
+python ../../scenario_pipeline.py --scenario basic --stage play --headless --episodes 10
+```
+
 ## 目录导航
 
 - [项目结构](#项目结构)
+- [视觉预览](#视觉预览)
 - [推荐学习路线](#推荐学习路线)
 - [两条训练路线](#两条训练路线)
 - [常用命令](#常用命令)
@@ -91,6 +144,8 @@ pip install -r requirements.txt
 
 ## 两条训练路线
 
+> 训练路线分成两类：能写规则的场景先让模型模仿老师，复杂视觉场景直接让 PPO 从画面中学习。
+
 ### 结构化场景
 
 适合：`simpler_basic`、`basic`、`defend_the_center`、`defend_the_line`、`health_gathering`、`take_cover`
@@ -108,6 +163,22 @@ pip install -r requirements.txt
 Teacher Policy -> Demo Collection -> BC -> PPO
 ```
 
+```text
+看到结构化状态
+   |
+   v
+规则教师选择动作
+   |
+   v
+采集演示数据
+   |
+   v
+BC 学会老师动作
+   |
+   v
+PPO 继续自己练
+```
+
 ### 视觉 PPO 场景
 
 适合：`my_way_home`、`deadly_corridor`、`cig`、`deathmatch`、`doom`
@@ -122,6 +193,19 @@ Teacher Policy -> Demo Collection -> BC -> PPO
 
 ```text
 Visual Observation -> PPO
+```
+
+```text
+游戏画面
+   |
+   v
+CNN Policy
+   |
+   v
+PPO 与环境交互
+   |
+   v
+保存可回放模型
 ```
 
 ## 常用命令
